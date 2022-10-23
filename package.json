@@ -1,5 +1,5 @@
 {
-  "name": "jsmewtocol",
+  "name": "@oleg31337/jsmewtocol",
   "version": "0.0.1",
   "private": false,
   "description": "Panasonic PLC MEWTOCOL COM protocol TCP implementation for Node.JS",
@@ -29,5 +29,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oleg31337/node-mewtocol.git"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/oleg31337/node-mewtocol/issues"
+  },
+  "homepage": "https://github.com/oleg31337/node-mewtocol#readme",
+  "devDependencies": {}
 }
