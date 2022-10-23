@@ -1,0 +1,33 @@
+{
+  "name": "jsmewtocol",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Panasonic PLC MEWTOCOL COM protocol TCP implementation for Node.JS",
+  "main": "mewtocol/mewclient.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Oleg Aroslanov",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "deasync": "^0.1.28",
+    "net": "^1.0.*"
+  },
+  "keywords": [
+    "node",
+    "mewtocol",
+    "panasonic",
+    "plc",
+    "automation"
+  ],
+  "engines": {
+    "node": ">=12"
+  },
+  "files": [
+    "mewtocol/**/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oleg31337/node-mewtocol.git"
+  }
+}
