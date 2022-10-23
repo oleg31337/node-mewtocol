@@ -12,22 +12,30 @@ class MewClient {
         this.port = port || defaultport;
         this.timeout = timeout || defaulttimeout;
         this.socket.setTimeout(this.timeout); //set timeout for socket
-        this.socket.connect({port:this.port, host:this.host}, ()=>{
-            console.log(`Connected to:${this.host}:${this.port}`);
-        });
-    }
-    connect() { //used for re-connection
-        var client = this;
-        client.socket.connect({port:client.port, host:client.host}, ()=>{
-            console.log(`Connected to:${client.host}:${client.port}`);
-        });
-        client.socket.on('close', (hadError)=>{
+        this.socket.on('close', (hadError)=>{
             if (hadError) {
-                console.log('Connection closed after error');
+                this.debug('Connection closed after error');
                 return;
             }
-            console.log('Connection closed.');
+            this.debug('Connection closed.');
             return;
+        });
+        this.socket.on('timeout', () => {
+            this.debug('Socket timeout.');
+            this.socket.destroy();
+          });
+        this.connect();
+    }
+    debug(...theArgs){
+        if (process.env.DEBUG == 'true') {
+            console.log(theArgs);
+        }
+    }
+    connect() { //used for connection and re-connection
+        var client = this;
+        client.socket.connect({port:client.port, host:client.host}, ()=>{
+            client.debug(`Connected to:${client.host}:${client.port}`);
+            
         });
     }
     destroy(){
@@ -36,7 +44,7 @@ class MewClient {
         while (client.socket.destroyed===false) {
             deasync.runLoopOnce();
         }
-        console.log('Socket destroyed.');
+        client.debug('Socket destroyed.');
     }
     parseIntArray(data){
         var arr=[];
@@ -411,17 +419,17 @@ class MewClient {
             if (!cmd.endsWith('\r')) cmd+='\r'; // add \r to command if not there
             client.socket.write(cmd, ()=>{ //send command to PLC
                 timeout=setTimeout(function(){ //set timeout for the data to arrive
-                    console.log('Timeout error');
+                    client.debug('Timeout error');
                     reject({error:'Timeout waiting for the data from PLC'});
                     return;
                 },client.timeout);
-                console.log('Sent command:'+cmd+'\n');
+                client.debug('Sent command:'+cmd+'\n');
             });
             var isresolved=false; //flag to indicate if the promise has been already resolved
             client.socket.on('data',function(buff){
                 var stringbuff=buff.toString();
                 if (!isresolved){ //check if promise has been already resolved
-                    console.log('Received:'+stringbuff.trimEnd());
+                    client.debug('Received:'+stringbuff.trimEnd());
                     if (stringbuff.startsWith(cmdchar+station+"!")){ // error message
                         clearTimeout(timeout);
                         var errcode=parseInt(stringbuff.slice(4,stringbuff.length-3),10);
@@ -431,17 +439,17 @@ class MewClient {
                     }
                     else if ((stringbuff.startsWith(cmdchar+station+'$')) && !stringbuff.endsWith('&\r') && stringbuff.endsWith('\r')) { // single message response
                         clearTimeout(timeout);
-                        console.log('Full packet received');
+                        client.debug('Full packet received');
                         isresolved=true;
                         resolve(stringbuff.slice(0,buff.length-3)); // Cut BCC and \r from the end of the message
                         return;
                     }
                     else if (stringbuff.startsWith(cmdchar+station+'$') && !stringbuff.endsWith('\r')) { // start of multi-packet response
                         clearTimeout(timeout);
-                        console.log('First packet received');
+                        client.debug('First packet received');
                         bigbuffer+=stringbuff;
                         timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                            console.log('Timeout error')
+                            client.debug('Timeout error')
                             isresolved=true;
                             reject({error:'Timeout waiting for the data from PLC'});
                             return;
@@ -449,11 +457,11 @@ class MewClient {
                     }
                     else if (!stringbuff.startsWith(cmdchar) && stringbuff.endsWith('&\r')) { //multi-packet multi-message response
                         clearTimeout(timeout);
-                        console.log('Middle packet received');
+                        client.debug('Middle packet received');
                         bigbuffer+=stringbuff.slice(0,stringbuff.length-4); //cut last 4 characters
                         client.socket.write(cmdchar+station+"**&\r",()=>{ //request the next packet from PLC
                             timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                                console.log('Timeout error')
+                                client.debug('Timeout error')
                                 isresolved=true;
                                 reject({error:'Timeout waiting for the data from PLC'});
                                 return;
@@ -462,11 +470,11 @@ class MewClient {
                     }
                     else if (stringbuff.startsWith(cmdchar+station) && stringbuff.endsWith('&\r')) { //multi-message response
                         clearTimeout(timeout);
-                        console.log('Middle packet received');
+                        client.debug('Middle packet received');
                         bigbuffer+=stringbuff.slice(3,stringbuff.length-4); // cut first 3 and last 4 characters
                         client.socket.write(cmdchar+station+"**&\r",()=>{ //request the next packet from PLC
                             timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                                console.log('Timeout error')
+                                client.debug('Timeout error')
                                 isresolved=true;
                                 reject({error:'Timeout waiting for the data from PLC'});
                                 return;
@@ -475,10 +483,10 @@ class MewClient {
                     }
                     else if (stringbuff.startsWith(cmdchar+station) && !stringbuff.endsWith('\r')) { //multi-message multi-packet response
                         clearTimeout(timeout);
-                        console.log('Middle packet received');
+                        client.debug('Middle packet received');
                         bigbuffer+=stringbuff.slice(3,stringbuff); // cut first 3 characters
                         timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                            console.log('Timeout error')
+                            client.debug('Timeout error')
                             isresolved=true;
                             reject({error:'Timeout waiting for the data from PLC'});
                             return;
@@ -486,7 +494,7 @@ class MewClient {
                     }
                     else if (stringbuff.startsWith(cmdchar+station) && stringbuff.endsWith('\r')) { //multi-message response last packet
                         clearTimeout(timeout);
-                        console.log('Last packet received');
+                        client.debug('Last packet received');
                         bigbuffer+=stringbuff.slice(3,stringbuff.length-3); // cut first 3 and last 3 characters
                         isresolved=true;
                         resolve(bigbuffer);
@@ -494,7 +502,7 @@ class MewClient {
                     }
                     else if (!stringbuff.startsWith(cmdchar) && stringbuff.endsWith('\r')) {  // end of multi packet response
                         clearTimeout(timeout);
-                        console.log('Last packet received');
+                        client.debug('Last packet received');
                         bigbuffer+=stringbuff.slice(0,stringbuff.length-3); // cut last 3 characters
                         isresolved=true;
                         resolve(bigbuffer);
