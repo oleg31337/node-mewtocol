@@ -11,7 +11,7 @@
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "deasync": "^0.1.28",
-    "net": "^1.0.*"
+    "net": "^1.0.2"
   },
   "keywords": [
     "node",
@@ -33,6 +33,5 @@
   "bugs": {
     "url": "https://github.com/oleg31337/node-mewtocol/issues"
   },
-  "homepage": "https://github.com/oleg31337/node-mewtocol#readme",
-  "devDependencies": {}
+  "homepage": "https://github.com/oleg31337/node-mewtocol#readme"
 }
