@@ -12,7 +12,7 @@ At the moment only some read commands are implemented:
 - RT(station) - Read PLC status
 ### Usage:
 ```
-const Client = require('node-mewtocol');
+const Client = require('jsmewtocol');
 var ip=10.10.10.11 // ip address of the PLC
 var port=9094; // TCP port is optional, default is 9094
 var timeout=5000; // timeout is optional, default is 5000ms

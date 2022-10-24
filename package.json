@@ -1,5 +1,5 @@
 {
-  "name": "@oleg31337/jsmewtocol",
+  "name": "jsmewtocol",
   "version": "0.0.1",
   "private": false,
   "description": "Panasonic PLC MEWTOCOL COM protocol TCP implementation for Node.JS",
@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Oleg Aroslanov",
+  "author": "oleg31337",
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "deasync": "^0.1.28",
