@@ -10,6 +10,17 @@ At the moment only some read commands are implemented:
 - RK(station,start-addr,end-addr) - Read timer elapsed values
 - RR(station,start-addr,end-addr) - Read system register
 - RT(station) - Read PLC status
+
+### Install
+
+Run the following command in the root directory of your Node.JS application:
+
+    npm install jsmewtocol
+
+Run the following command for global install:
+
+    npm install -g jsmewtocol
+
 ### Usage:
 ```
 const Client = require('jsmewtocol');
@@ -24,5 +35,5 @@ client.RD(1,'D',800,809)
 .then ((data)=>{console.log(data); return client.destroy();})
 .catch ((err) =>{ console.error(err); client.destroy();});
 ```
-> It is important to destroy the client socket. Otherwise it will hang until PLC drops the connection on it's end.
-> If the PLC drops the socket due to timeout, the node-mewtocol will try to re-establish the connection
+> It is important to destroy the client socket. Otherwise it will hang until PLC drops the connection on it's end or socket timeout will happen.
+> If the socket is destroyed due to timeout, the node-mewtocol will try to re-establish the connection
