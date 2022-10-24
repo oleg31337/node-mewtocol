@@ -356,22 +356,22 @@ class MewClient {
                 var selfdiag = parseInt(data[20]+data[21]+data[18]+data[19],16);
                 //decode operation status
                 var operation_mode = operstatus & 1;
-                var testrun_mode = operstatus & 2;
-                var break_exec = operstatus & 4;
-                var break_cond = operstatus & 8;
-                var out_enable = operstatus & 16;
-                var step_run = operstatus & 32;
-                var msg_inst = operstatus & 64;
-                var remote_mode = operstatus & 128;
+                var testrun_mode = (operstatus & 2)>>1;
+                var break_exec = (operstatus & 4)>>2;
+                var break_cond = (operstatus & 8)>>3;
+                var out_enable = (operstatus & 16)>>4;
+                var step_run = (operstatus & 32)>>5;
+                var msg_inst = (operstatus & 64)>>6;
+                var remote_mode = (operstatus & 128)>>7;
                 //decode error flag
                 var self_diag_error = errorflag & 1;
-                var voltage_dip = errorflag & 2;
-                var fuse_blow = errorflag & 4;
-                var intelligent_unit_error = errorflag & 8;
-                var io_verify = errorflag & 16;
-                var vbatt_drop = errorflag & 32;
-                var vbatt_drop_hold = errorflag & 64;
-                var oper_error = errorflag & 128;
+                var voltage_dip = (errorflag & 2)>>1;
+                var fuse_blow = (errorflag & 4)>>2;
+                var intelligent_unit_error = (errorflag & 8)>>3;
+                var io_verify = (errorflag & 16)>>4;
+                var vbatt_drop = (errorflag & 32)>>5;
+                var vbatt_drop_hold = (errorflag & 64)>>6;
+                var oper_error = (errorflag & 128)>>7;
                 resolve ({
                     cputype:cputype,
                     cpuversion:cpuversion,
