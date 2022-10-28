@@ -1,29 +1,37 @@
 'use strict';
 const net = require ('net');
+const EventEmitter = require ('events').EventEmitter;
 const deasync = require ('deasync');
 const defaultport = 9094; // default mewtocol port
 const localhost = '127.0.0.1'; //default IP address
 const defaulttimeout = 5000; //default 5 seconds timeout for PLC communication
 
-class MewClient {
+class MewClient extends EventEmitter {
     constructor(host,port,timeout) {
+        super();
         this.socket = new net.Socket();
         this.host = host || localhost;
         this.port = port || defaultport;
         this.timeout = timeout || defaulttimeout;
         this.socket.setTimeout(this.timeout); //set timeout for socket
         this.socket.on('close', (hadError)=>{
+            this.emit('disconnect',hadError);
             if (hadError) {
-                this.debug('Connection closed after error');
+                this.debug('Connection closed after an error');
                 return;
             }
             this.debug('Connection closed.');
             return;
         });
         this.socket.on('timeout', () => {
-            this.debug('Socket timeout.');
-            this.socket.destroy();
-          });
+            this.emit('timeout',{error:'Socket idle timeout'});
+            this.debug('Socket idle timeout.');
+            this.destroy();
+        });
+        this.socket.on('connect', () => {
+            this.emit('connect',{host:this.host,port:this.port});
+            this.debug('Connected to ' + this.host + ':' + this.port);
+        });
         this.connect();
     }
     debug(...theArgs){
@@ -33,10 +41,7 @@ class MewClient {
     }
     connect() { //used for connection and re-connection
         var client = this;
-        client.socket.connect({port:client.port, host:client.host}, ()=>{
-            client.debug(`Connected to:${client.host}:${client.port}`);
-            
-        });
+        client.socket.connect({port:client.port, host:client.host});
     }
     destroy(){
         var client = this;
@@ -420,6 +425,7 @@ class MewClient {
             client.socket.write(cmd, ()=>{ //send command to PLC
                 timeout=setTimeout(function(){ //set timeout for the data to arrive
                     client.debug('Timeout error');
+                    client.emit('timeout', {error:'Timeout waiting for the data from PLC'});
                     reject({error:'Timeout waiting for the data from PLC'});
                     return;
                 },client.timeout);
@@ -434,7 +440,8 @@ class MewClient {
                         clearTimeout(timeout);
                         var errcode=parseInt(stringbuff.slice(4,stringbuff.length-3),10);
                         isresolved=true;
-                        reject({error:'PLC returned error '+errcode+': '+parseErrorCode(errcode)});
+                        client.emit('error', {error:'PLC returned error '+errcode+': '+client.parseErrorCode(errcode)});
+                        reject({error:'PLC returned error '+errcode+': '+client.parseErrorCode(errcode)});
                         return;
                     }
                     else if ((stringbuff.startsWith(cmdchar+station+'$')) && !stringbuff.endsWith('&\r') && stringbuff.endsWith('\r')) { // single message response
@@ -449,7 +456,8 @@ class MewClient {
                         client.debug('First packet received');
                         bigbuffer+=stringbuff;
                         timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                            client.debug('Timeout error')
+                            client.debug('Timeout error');
+                            client.emit('timeout', {error:'Timeout waiting for the data from PLC'});
                             isresolved=true;
                             reject({error:'Timeout waiting for the data from PLC'});
                             return;
@@ -461,7 +469,8 @@ class MewClient {
                         bigbuffer+=stringbuff.slice(0,stringbuff.length-4); //cut last 4 characters
                         client.socket.write(cmdchar+station+"**&\r",()=>{ //request the next packet from PLC
                             timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                                client.debug('Timeout error')
+                                client.debug('Timeout error');
+                                client.emit('timeout', {error:'Timeout waiting for the data from PLC'});
                                 isresolved=true;
                                 reject({error:'Timeout waiting for the data from PLC'});
                                 return;
@@ -474,7 +483,8 @@ class MewClient {
                         bigbuffer+=stringbuff.slice(3,stringbuff.length-4); // cut first 3 and last 4 characters
                         client.socket.write(cmdchar+station+"**&\r",()=>{ //request the next packet from PLC
                             timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                                client.debug('Timeout error')
+                                client.debug('Timeout error');
+                                client.emit('timeout', {error:'Timeout waiting for the data from PLC'});
                                 isresolved=true;
                                 reject({error:'Timeout waiting for the data from PLC'});
                                 return;
@@ -486,7 +496,8 @@ class MewClient {
                         client.debug('Middle packet received');
                         bigbuffer+=stringbuff.slice(3,stringbuff); // cut first 3 characters
                         timeout=setTimeout(function(){ //wait for the remaining data, then terminate with error
-                            client.debug('Timeout error')
+                            client.debug('Timeout error');
+                            client.emit('timeout', {error:'Timeout waiting for the data from PLC'});
                             isresolved=true;
                             reject({error:'Timeout waiting for the data from PLC'});
                             return;
@@ -509,6 +520,7 @@ class MewClient {
                         return;
                     }
                     else { // Unexpected message
+                        client.emit('error', {error:'Unexpected message received from PLC', msg:stringbuff});
                         clearTimeout(timeout);
                         isresolved=true;
                         reject({error:'Unexpected response from PLC'});
@@ -517,6 +529,7 @@ class MewClient {
                 }
             });
             client.socket.on('error', (err) => {
+                client.emit('error', {error:'TCP socket error', msg:err});
                 reject(err);
                 return;
             });
