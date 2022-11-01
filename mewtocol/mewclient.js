@@ -82,7 +82,7 @@ class MewClient extends EventEmitter {
                 errmsg='MEWTOCOL station number setting error';
                 break;
             case 27:
-                errmsg='Frame–over error';
+                errmsg='Frame-over error';
                 break;
             case 28:
                 errmsg='No response error';
@@ -91,7 +91,7 @@ class MewClient extends EventEmitter {
                 errmsg='Buffer close error';
                 break;
             case 30:
-                errmsg='Time–out error.';
+                errmsg='Time-out error.';
                 break;
             case 32:
                 errmsg='Transmission impossible error';
@@ -112,7 +112,7 @@ class MewClient extends EventEmitter {
                 errmsg='Format error';
                 break;
             case 42:
-                errmsg='Not–support error';
+                errmsg='Not-support error';
                 break;
             case 43:
                 errmsg='Procedure error';
@@ -151,7 +151,7 @@ class MewClient extends EventEmitter {
                 errmsg='No data error';
                 break;
             case 72:
-                errmsg='Time–out error';
+                errmsg='Time-out error';
                 break;
             case 73:
                 errmsg='Time-out error';
