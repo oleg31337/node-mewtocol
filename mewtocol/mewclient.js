@@ -1,7 +1,6 @@
 'use strict';
 const net = require ('net');
 const EventEmitter = require ('events').EventEmitter;
-const deasync = require ('deasync');
 const defaultport = 9094; // default mewtocol port
 const localhost = '127.0.0.1'; //default IP address
 const defaulttimeout = 5000; //default 5 seconds timeout for PLC communication
@@ -46,9 +45,6 @@ class MewClient extends EventEmitter {
     destroy(){
         var client = this;
         client.socket.destroy();
-        while (client.socket.destroyed===false) {
-            deasync.runLoopOnce();
-        }
         client.debug('Socket destroyed.');
     }
     parseIntArray(data){
@@ -412,9 +408,6 @@ class MewClient extends EventEmitter {
         var client = this;
         if (client.socket.destroyed) { //if socket is destroyed, create a new one
             client.connect();
-        }
-        while (client.socket.readyState !== 'open') { //if socket is not open, wait for it to open
-            deasync.runLoopOnce();
         }
         return new Promise((resolve, reject) => {
             var bigbuffer='';

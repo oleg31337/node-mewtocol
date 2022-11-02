@@ -1,6 +1,6 @@
 {
   "name": "jsmewtocol",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": false,
   "description": "Panasonic PLC MEWTOCOL COM protocol TCP implementation for Node.JS",
   "main": "mewtocol/mewclient.js",
@@ -10,7 +10,6 @@
   "author": "oleg31337",
   "license": "MIT-feh",
   "dependencies": {
-    "deasync": "^0.1.28",
     "events": "^3.3.0",
     "net": "^1.0.2"
   },
