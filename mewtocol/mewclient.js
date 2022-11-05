@@ -271,7 +271,7 @@ class MewClient extends EventEmitter {
                 var cmd = "%"+station+'#RCS' + area + address.toString().padStart(4,'0') + '**\r';
                 this.sendCommand(cmd)
                 .then ((data)=>{
-                    var val = data.slice(6,data.length);
+                    var val = parseInt(data.slice(6,data.length),10);
                     resolve(val);
                 })
                 .catch((err)=>{ reject(err);});
