@@ -52,6 +52,9 @@ class MewClient extends EventEmitter {
         for (var i=0; i<data.length;i=i+4){
             var hexstr = data[i + 2] + data[i + 3] + data[i] + data[i + 1];
             var val = parseInt(hexstr, 16);
+            if ((val & 0x8000) > 0) { // handle negative values
+                val = val - 0x10000;
+            }
             arr.push(val);
         }
         return arr;
@@ -171,13 +174,12 @@ class MewClient extends EventEmitter {
             if (endaddr - startaddr>20) { //if more than 20 registers, switch to 2048 byte message format
                 cmdchar='<';
             }
-            var numofregisters = endaddr-startaddr+1;
             if (areas.includes(area)){
                 var cmd = cmdchar+station+'#RD'+ area + startaddr.toString().padStart(5,'0') + endaddr.toString().padStart(5,'0') + '**\r';
                 this.sendCommand(cmd)
                 .then ((data)=>{
                     var arr = this.parseIntArray(data.slice(6,data.length));
-                    if (numofregisters>1) resolve(arr)
+                    if (arr.length>1) resolve(arr);
                     else resolve(arr[0]);
                 })
                 .catch((err)=>{ reject(err);});
@@ -201,12 +203,11 @@ class MewClient extends EventEmitter {
             if (endaddr - startaddr>20) { //if more than 20 registers, switch to 2048 byte message format
                 cmdchar='<';
             }
-            var numofregisters = endaddr-startaddr+1;
             var cmd = cmdchar+station+'#RR0' + startaddr.toString().padStart(3,'0') + endaddr.toString().padStart(3,'0') + '**\r';
             this.sendCommand(cmd)
             .then ((data)=>{
                 var arr = this.parseIntArray(data.slice(6,data.length));
-                if (numofregisters>1) resolve(arr)
+                if (arr.length>1) resolve(arr);
                 else resolve(arr[0]);
             })
             .catch((err)=>{ reject(err);});
@@ -226,12 +227,11 @@ class MewClient extends EventEmitter {
             if (endaddr - startaddr>20) { //if more than 20 registers, switch to 2048 byte message format
                 cmdchar='<';
             }
-            var numofregisters = endaddr-startaddr+1;
             var cmd = cmdchar+station+'#RS' + startaddr.toString().padStart(4,'0') + endaddr.toString().padStart(4,'0') + '**\r';
             this.sendCommand(cmd)
             .then ((data)=>{
                 var arr = this.parseIntArray(data.slice(6,data.length));
-                if (numofregisters>1) resolve(arr)
+                if (arr.length>1) resolve(arr);
                 else resolve(arr[0]);
             })
             .catch((err)=>{ reject(err);});
@@ -251,12 +251,11 @@ class MewClient extends EventEmitter {
             if (endaddr - startaddr>20) { //if more than 20 registers, switch to 2048 byte message format
                 cmdchar='<';
             }
-            var numofregisters = endaddr-startaddr+1;
             var cmd = cmdchar+station+'#RK' + startaddr.toString().padStart(4,'0') + endaddr.toString().padStart(4,'0') + '**\r';
             this.sendCommand(cmd)
             .then ((data)=>{
                 var arr = this.parseIntArray(data.slice(6,data.length));
-                if (numofregisters>1) resolve(arr)
+                if (arr.length>1) resolve(arr);
                 else resolve(arr[0]);
             })
             .catch((err)=>{ reject(err);});
@@ -282,7 +281,7 @@ class MewClient extends EventEmitter {
             }
         })
     }
-    RCP(station,addresses){ //RC P command. Read contact multiple bit values up to 8 bits.
+    RCP(station,addresses){ //RC P command. Read multiple contact bit values up to 8 bits.
         return new Promise((resolve,reject)=>{
             const areas=['X','Y','R','L'];
             var addrstring='';
@@ -293,7 +292,7 @@ class MewClient extends EventEmitter {
             }
             for (var i=0;i<addresses.length;i++){ //build address string and validate areas
                 if (!areas.includes(addresses[i].slice(0,1))){
-                    reject({error:'Invalid area(s) Valid areas for contacts are X,Y,R,L'});
+                    reject({error:'Invalid area:'+addresses[i].slice(0,1)+'. Valid areas for contacts are X,Y,R,L'});
                     return;
                 }
                 addrstring+=addresses[i];
@@ -326,13 +325,12 @@ class MewClient extends EventEmitter {
             if (endaddr-startaddr>20) { //if more than 20 registers, switch to 2048 byte message format
                 cmdchar='<';
             }
-            var numofregisters = endaddr-startaddr+1;
             if (areas.includes(area)){
                 var cmd = cmdchar+station+'#RCC'+ area + startaddr.toString().padStart(4,'0') + endaddr.toString().padStart(4,'0') + '**\r';
                 this.sendCommand(cmd)
                 .then ((data)=>{
                     var arr = this.parseIntArray(data.slice(6,data.length));
-                    if (numofregisters>1) resolve(arr)
+                    if (arr.length>1) resolve(arr);
                     else resolve(arr[0]);
                 })
                 .catch((err)=>{ reject(err);});
